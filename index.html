@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Movie Search</title>
+    
+    <style>.movie-card {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+    }
+  
+    .movie-card__item {
+      width: 300px;
+      background-color: #f5f5f5;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+    }
+  
+    .movie-card__item:hover {
+      transform: scale(1.02);
+    }
+  
+    .movie-card__image {
+      width: 100%;
+      height: 0;
+      padding-top: 150%;
+      position: relative;
+    }
+  
+    .movie-card__image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+  
+    .movie-card__content {
+      padding: 16px;
+    }
+  
+    .movie-card__title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+  
+    .movie-card__overview {
+      margin-bottom: 8px;
+    }
+  
+    .movie-card__vote {
+      font-weight: bold;
+    }</style>
+  </head>
+  <body>
+    <h1>Movie Search</h1>
+    <div>
+      <input
+        type="text"
+        id="search-input"
+        placeholder="Search movies by title"
+      />
+      <button id="search-button">Search</button>
+    </div>
+    <div class="movie-card" id="movie-list"></div>
+
+    <script>
+      const API_KEY =
+        "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlZGNlZmRkNDlkNzIxOGQzYzU4YzZmN2Q5NDlhODc5ZCIsInN1YiI6IjY0NzU4YzFmYmJjYWUwMDBjMTQ0YjVmMCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.PagxBbcXnNmEDzilvApSCe42Hjoa5Eov_b2NpQuD7X0";
+
+      // 영화 목록 API URL
+      const popularMoviesUrl = `https://api.themoviedb.org/3/movie/top_rated?language=en-US&page=1&api_key=${API_KEY}`;
+
+      // 검색 API URL
+      const searchMoviesUrl = (query) =>
+        `https://api.themoviedb.org/3/search/movie?language=en-US&page=1&query=${query}&api_key=${API_KEY}`;
+
+      // 영화 데이터를 브라우저 화면에 보여주는 함수
+      function showMovies(movies) {
+        const movieList = document.getElementById("movie-list");
+        movieList.innerHTML = "";
+
+        movies.forEach((movie) => {
+          const { id, title, overview, poster_path, vote_average } = movie;
+
+          const movieCard = document.createElement("div");
+          movieCard.className = "movie-card";
+
+          const imageContainer = document.createElement("div");
+          imageContainer.className = "movie-card__image";
+
+          const image = document.createElement("img");
+          image.src = `https://image.tmdb.org/t/p/w500/${poster_path}`;
+          image.alt = title; //이미지가 없을경우 
+
+          imageContainer.appendChild(image);
+          movieCard.appendChild(imageContainer);
+
+          const movieInfo = document.createElement("div");
+          movieInfo.className = "movie-card__info";
+
+          const movieTitle = document.createElement("h2");
+          movieTitle.textContent = title;
+          movieInfo.appendChild(movieTitle);
+
+          const movieOverview = document.createElement("p");
+          movieOverview.textContent = overview;
+          movieInfo.appendChild(movieOverview);
+
+          const movieVote = document.createElement("p");
+          movieVote.textContent = `Vote Average: ${vote_average}`;
+          movieInfo.appendChild(movieVote);
+
+          movieCard.appendChild(movieInfo);
+
+          // 카드 클릭 시 영화 ID를 알림으로 표시
+          movieCard.addEventListener("click", () => {
+            alert(`Clicked movie ID: ${id}`);
+          });
+
+          movieList.appendChild(movieCard);
+        });
+      }
+
+      // 검색어를 포함하는 영화를 가져와서 화면에 보여주는 함수
+      function searchMovies(query) {
+        const searchUrl = searchMoviesUrl(query);
+
+        fetch(searchUrl)
+          .then((response) => response.json())
+          .then((data) => {
+            const movies = data.results;
+            showMovies(movies);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
+
+      // 인기 영화 목록을 가져와서 화면에 보여주는 함수
+      function getPopularMovies() {
+        fetch(popularMoviesUrl)
+          .then((response) => response.json())
+          .then((data) => {
+            const movies = data.results;
+            showMovies(movies);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
+
+      // 초기화
+      function init() {
+        const searchForm = document.getElementById("search-form");
+        const searchInput = document.getElementById("search-input");
+        const searchButton = document.getElementById("search-button");
+
+        // 검색 버튼 클릭 이벤트 처리
+        searchForm.addEventListener("submit", (event) => {
+          event.preventDefault();
+          const query = searchInput.value;
+          searchMovies(query);
+        });
+
+        // 초기 인기 영화 목록 로딩
+        getPopularMovies();
+      }
+
+      // 초기화 함수 호출
+      init();
+    </script>
+  </body>
+</html>
